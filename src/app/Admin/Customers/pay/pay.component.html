@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+  <div class="page">
+    <div class="page-content d-flex align-items-stretch">
+      <!-- Sidebar -->
+      <app-sidebar></app-sidebar>
+
+      <!-- Page content -->
+      <div class="content-inner">
+        <header class="page-header">
+          <div class="container-fluid">
+            <h2 class="no-margin-bottom">Customers</h2>
+          </div>
+        </header>
+        <!-- Breadcrumb-->
+        <div class="breadcrumb-holder container-fluid">
+          <ul class="breadcrumb">
+            <li class="breadcrumb-item"><a [routerLink]="['/dashboard']">Home</a></li>
+            <li class="breadcrumb-item active">Quick Payment</li>
+          </ul>
+        </div>
+        <section class="forms">
+          <div class="container-fluid">
+            <div class="card">
+              <div class="card-header d-flex align-items-center">
+                <h3 class="h4">Quick Payment</h3>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-lg-12">
+                    <form #searchbill="ngForm" (ngSubmit)="searchBill(searchbill.value)" id="searchForm">
+                      <div class="form-group">
+                        <input type="text" placeholder="Enter username" class="form-control" name="username" required
+                          ngModel #name="ngModel">
+                      </div>
+                      <div class="form-group">
+                        <input type="submit" value="Comfirm" class="btn btn-primary" form="searchForm"
+                          [disabled]="searchbill.invalid">
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card" *ngIf="this.haveBill==false">
+              <div class="card-header d-flex align-items-center">
+                <h3 class="h4">Bill info not found</h3>
+              </div>
+            </div>
+            <div class="card" *ngIf="this.haveBill">
+              <div class="card-header d-flex align-items-center">
+                <h3 class="h4">Bill info</h3>
+              </div>
+              <div class="card-body">
+                <table class="table table-striped" id="allBillTable">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="text-center">#</th>
+                      <th scope="col" class="text-center">Username</th>
+                      <th scope="col" class="text-center">Date created</th>
+                      <th scope="col" class="text-center">Party date </th>
+                      <th scope="col" class="text-center">Num of tables</th>
+                      <th scope="col" class="text-center">Total</th>
+                      <th scope="col" class="text-center">Status</th>
+                      <th scope="col" class="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      *ngFor="let bill of bill_info; let i = index">
+                      <th scope="row" class="align-middle text-center">{{i+1}}</th>
+                      <td class="align-middle text-center">{{bill?.customer}}</td>
+                      <td class="align-middle text-center">{{bill?.create_at | date:'dd-MM-yyyy'}}</td>
+                      <td class="align-middle text-center">{{bill?.date_party | date:'dd-MM-yyyy, HH:mm'}}</td>
+                      <td class="align-middle text-center">{{bill?.table}}</td>
+                      <td class="align-middle text-center">{{bill?.total | number}}</td>
+                      <td class="align-middle text-center"><span *ngIf="bill?.payment_status==1">Paid</span><span
+                          *ngIf="bill?.payment_status==0">Unpaid</span></td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-outline-primary btn-sm mr-2" data-placement="top"
+                          title="Show bill detail" data-toggle="modal" data-target="#billDetailModal"
+                          (click)="itemClicked(bill)">
+                          <i class="fa fa-info"></i>
+                        </button>
+                        <button *ngIf="bill?.confirm_status==1 && bill?.payment_status==0" type="button"
+                          class="btn btn-outline-primary btn-sm mr-2" data-toggle="tooltip" data-placement="top"
+                          title="Pay this bill" (click)="pay(bill._id)">
+                          <i class="fa fa-usd"></i>
+                        </button>
+                        <button *ngIf="bill?.confirm_status==0" type="button"
+                          class="btn btn-outline-primary btn-sm mr-2" data-placement="top" title="Confirm this bill"
+                          data-toggle="modal" data-target="#confirmBillModal" (click)="itemClicked(bill)">
+                          <i class="fa fa-check"></i>
+                        </button>
+                        <!-- <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="tooltip"
+                          data-placement="top" title="Cancel this bill" (click)="delete_bill(bill._id)"><i
+                            class="fa fa-times"></i></button> -->
+                        <button *ngIf="bill?.confirm_status==0" type="button" class="btn btn-outline-primary btn-sm"
+                          data-placement="top" title="Cancel this bill" data-toggle="modal"
+                          data-target="#cancelBillModal" (click)="itemClicked(bill)">
+                          <i class="fa fa-times"></i>
+                        </button>
+                      </td>
+                      <!-- Confirm Bill Modal -->
+                      <div class="modal fade" id="confirmBillModal" tabindex="-1" role="dialog"
+                        aria-labelledby="confirmBillModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="form">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="confirmBillModalLabel">Confirm Bill</h5>
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                            </div>
+                            <div class="modal-body">
+                              <p>Note</p>
+                              <textarea ngModel #confirm_note class="w-100" rows="5"></textarea>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-primary" data-dismiss="modal"
+                                (click)="confirm_bill(confirm_note.value)">
+                                OK
+                              </button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Cancel Bill Modal -->
+                      <div class="modal fade" id="cancelBillModal" tabindex="-1" role="dialog"
+                        aria-labelledby="cancelBillModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="form">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="cancelBillModalLabel">Cancel Bill</h5>
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                            </div>
+                            <div class="modal-body">
+                              <p>Note</p>
+                              <textarea #cancel_note class="w-100" rows="5"></textarea>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-primary" data-dismiss="modal"
+                                (click)="cancel_bill(cancel_note.value)">
+                                OK
+                              </button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Bill Detail Modal-->
+                      <div class="modal fade" id="billDetailModal" tabindex="-1" role="dialog"
+                        aria-labelledby="billDetailModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="billDetailModalLabel">Bill detail</h5>
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                            </div>
+                            <div class="modal-body">
+                              <p>Username: {{current_bill?.customer}}</p>
+                              <!-- <P>Phone: {{current_bill?.phone}}</P>
+                              <p>Email: {{current_bill?.email}}</p> -->
+                              <p>Date created: {{current_bill?.create_at | date:'dd-MM-yyyy'}}</p>
+                              <p>Party date: {{current_bill?.date_party | date:'dd-MM-yyyy, HH:mm'}}</p>
+                              <p>Num of tables: {{current_bill?.table}}</p>
+                              <p>Total: {{current_bill?.total | number}} {{current_bill?.currency}}</p>
+                              <p>Status:
+                                <span *ngIf="current_bill?.confirm_status==0">Unconfirmed</span>
+                                <span *ngIf="current_bill?.confirm_status==1">Confirmed</span>
+                                <span *ngIf="current_bill?.confirm_status==2">Canceled</span>
+                              </p>
+                              <p>Payment: <span *ngIf="current_bill?.payment_status==1">Paid</span><span
+                                  *ngIf="current_bill?.payment_status==0">Unpaid</span></p>
+                              <p>Bill id: {{current_bill?._id}}</p>
+                              <h6>Items in each table</h6>
+                              <table class="table table-hover">
+                                <thead>
+                                  <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Price</th>
+                                    <th class="text-center">Quantity</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr *ngFor="let itemDetail of bill_detail; let i = index">
+                                    <th scope="row">{{i+1}}</th>
+                                    <td>{{itemDetail.name}}</td>
+                                    <td>{{itemDetail.price | number}}</td>
+                                    <td class="text-center">{{itemDetail.count | number}}</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

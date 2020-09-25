@@ -1,0 +1,33 @@
+#productChart {
+    width: 100wh!important;
+}
+
+.chart-btn {
+    background-color: white;
+    color: #796AEE;
+}
+
+.chart-btn:hover {
+    background-color: #796AEE;
+    border-color: #796AEE;
+    color: white;
+}
+
+/* .chart-btn.active {
+    background-color: #5a48ea;
+    border-color: blue;
+    color: white;
+} */
+
+.graph {
+    padding: 10px;
+    position: relative;
+    overflow-x: scroll;
+    width: 100%;
+}
+
+.graph-container {
+    height: 500px;
+    width: 100%;
+    min-width: 100%
+}
